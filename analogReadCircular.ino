@@ -1,12 +1,9 @@
 //Set BaudRate
-uint16_t baudRate = 9600;
-
-//Trigger state
-bool triggered = false;
+const uint16_t BAUD_RATE = 9600;
 
 //Create buffer hardcoded with 800 elements
-const uint16_t bufferLength = 800;
-uint16_t circularbuffer[bufferLength];
+const uint16_t BUFFER_LENGTH = 800;
+uint16_t circularbuffer[BUFFER_LENGTH];
 uint16_t currentElementIndex;
 
 //Set trigger
@@ -14,10 +11,11 @@ const uint16_t THRESHOLD = 500;
 
 //Declare timer
 uint16_t timer;
+const uint16_t END_TIMER = 500;
 
 //Set pins
-const uint8_t digitalPulsePin = 2;
-const uint8_t analogReadPin = 0;
+const uint8_t DIGITAL_PULSE_PIN = 2;
+const uint8_t ANALOG_READ_PIN = 0;
 
 //virtual function declarations
 //void dumpToSerialPort();
@@ -25,27 +23,35 @@ const uint8_t analogReadPin = 0;
 
 void setup(){
 	//Setup Digital output pins
-	pinMode(digitalPulsePin, OUTPUT);
-	digitalWrite(digitalPulsePin, LOW);
+	pinMode(DIGITAL_PULSE_PIN, OUTPUT);
+	digitalWrite(DIGITAL_PULSE_PIN, LOW);
 
 	//Setup circular buffer
 	currentElementIndex = 0;
+
+	//Setup timer
+	timer = 0;
 }
 
 void loop(){
+	//__asm__("nop\n\t");	//No operation that takes 1 clock cycle
+
 	//Set pin to high
-	digitalWrite(digitalPulsePin, HIGH);
+	digitalWrite(DIGITAL_PULSE_PIN, HIGH);
 
-	uint16_t adcValue = analogRead(analogReadPin);		//THIS instruction takes a long time (~10ms!)
+	//
+	uint16_t adcValue = analogRead(ANALOG_READ_PIN);		//THIS instruction takes a long time
 
-	if(triggered && timer > 0){
+	if(timer > 0){
 		//if we are still filling buffer before dump
-		--timer;
-		addToBuffer(adcValue);
-	} else if(triggered && timer <= 0){
-		//time to dump data and reset to original state
-		triggered = false;
-		dumpToSerialPort();
+		++timer;
+
+		//check if we are done filling the buffer
+		if(timer == END_TIMER){
+			//uncomment this for mutiple buffers.
+			//timer = 0;
+			dumpToSerialPort();
+		}
 	} else {
 		/*
 		if above THRESHOLD, allow buffer to fill n number of times, dump on the serial port, then continue
@@ -53,24 +59,28 @@ void loop(){
 		*/	
 	
 		if(adcValue >= THRESHOLD){
-			//set "timer" to fill buffer n times
-			triggered = true;
-			timer = 500;		//n=500
+			//start timer
+			timer = 1;
+		} else {
+			//make sure timer is stopped
+			timer = 0;
 		}
-
-		addToBuffer(adcValue);
-
-		//Set pint to low
-		digitalWrite(digitalPulsePin, LOW);
 	}
+
+	//Add value to buffer
+	currentElementIndex = (currentElementIndex + 1) % BUFFER_LENGTH;
+	circularbuffer[currentElementIndex] = adcValue;
+
+	//Set pin to low
+	digitalWrite(DIGITAL_PULSE_PIN, LOW);
 }
 
 //Dumps the circular buffer from current element, wrapping around, to itself.
 void dumpToSerialPort(){
 	//Initialize serial communication maybe do this only when needed
-	Serial.begin(baudRate);
+	Serial.begin(BAUD_RATE);
 	
-	for(int i=currentElementIndex;i<bufferLength;++i){
+	for(int i=currentElementIndex;i<BUFFER_LENGTH;++i){
 		//Serial.print(i);
 		//Serial.print(": ");
 		Serial.println(circularbuffer[i]);
@@ -82,14 +92,8 @@ void dumpToSerialPort(){
 	}
 }
 
-//Adds to the next part of the circular buffer
-void addToBuffer(uint16_t adcValue){
-	if(currentElementIndex + 1 >= bufferLength){
-		currentElementIndex = 0;
-	} else {
-		currentElementIndex = currentElementIndex;
-	}
-
-	circularbuffer[currentElementIndex] = adcValue;
-	++currentElementIndex;
-}
+// //Adds to the next part of the circular buffer
+// void addToBuffer(uint16_t adcValue){
+// 	currentElementIndex = (currentElementIndex + 1) % BUFFER_LENGTH;
+// 	circularbuffer[currentElementIndex] = adcValue;
+// }
