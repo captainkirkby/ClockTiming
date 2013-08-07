@@ -30,9 +30,6 @@ void setup(){
 
 	//Setup circular buffer
 	currentElementIndex = 0;
-
-	//Initialize serial communication maybe do this only when needed
-	Serial.begin(baudRate);
 }
 
 void loop(){
@@ -70,14 +67,17 @@ void loop(){
 
 //Dumps the circular buffer from current element, wrapping around, to itself.
 void dumpToSerialPort(){
+	//Initialize serial communication maybe do this only when needed
+	Serial.begin(baudRate);
+	
 	for(int i=currentElementIndex;i<bufferLength;++i){
-		Serial.print(i);
-		Serial.print(": ");
+		//Serial.print(i);
+		//Serial.print(": ");
 		Serial.println(circularbuffer[i]);
 	}
 	for(int i=0;i<currentElementIndex;++i){
-		Serial.print(i);
-		Serial.print(": ");
+		//Serial.print(i);
+		//Serial.print(": ");
 		Serial.println(circularbuffer[i]);
 	}
 }
