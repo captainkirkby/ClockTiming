@@ -14,6 +14,7 @@ uint16_t timer;
 const uint16_t END_TIMER = 500;
 
 //Set pins
+const uint8_t DIGITAL_TRIGGER_PIN = 4;
 const uint8_t DIGITAL_PULSE_PIN = 2;
 const uint8_t ANALOG_READ_PIN = 0;
 
@@ -25,6 +26,10 @@ void setup(){
 	//Setup Digital output pins
 	pinMode(DIGITAL_PULSE_PIN, OUTPUT);
 	digitalWrite(DIGITAL_PULSE_PIN, LOW);
+
+	//Setup Digital trigger pins
+	pinMode(DIGITAL_TRIGGER_PIN, OUTPUT);
+	digitalWrite(DIGITAL_TRIGGER_PIN, LOW);
 
 	//Setup circular buffer
 	currentElementIndex = 0;
@@ -46,6 +51,9 @@ void loop(){
 		//if we are still filling buffer before dump
 		++timer;
 
+		//Time padding
+		digitalWrite(DIGITAL_TRIGGER_PIN, LOW);
+
 		//check if we are done filling the buffer
 		if(timer == END_TIMER){
 			//uncomment this for mutiple buffers.
@@ -63,12 +71,15 @@ void loop(){
 		if(adcValue >= THRESHOLD){
 			//start timer
 			timer = 1;
-			
+			digitalWrite(DIGITAL_TRIGGER_PIN, HIGH);
+
+
 			//Waste a few clock cycles to note on the oscilloscope that we have started the timer
-			delayMicroseconds(1);
+			//delayMicroseconds(1);
 		} else {
 			//make sure timer is stopped
 			timer = 0;
+			digitalWrite(DIGITAL_TRIGGER_PIN, LOW);
 		}
 	}
 
