@@ -34,7 +34,7 @@ void setup(){
 }
 
 void loop(){
-	//__asm__("nop\n\t");	//No operation that takes 1 clock cycle
+	//__asm__("nop\n\t");	//No operation that takes 1 clock cycle.... Not so sure it works
 
 	//Set pin to high
 	digitalWrite(DIGITAL_PULSE_PIN, HIGH);
@@ -49,7 +49,9 @@ void loop(){
 		//check if we are done filling the buffer
 		if(timer == END_TIMER){
 			//uncomment this for mutiple buffers.
-			//timer = 0;
+			timer = 0;
+
+			//dump data gather session to serial port
 			dumpToSerialPort();
 		}
 	} else {
@@ -61,6 +63,9 @@ void loop(){
 		if(adcValue >= THRESHOLD){
 			//start timer
 			timer = 1;
+			
+			//Waste a few clock cycles to note on the oscilloscope that we have started the timer
+			delayMicroseconds(1);
 		} else {
 			//make sure timer is stopped
 			timer = 0;
