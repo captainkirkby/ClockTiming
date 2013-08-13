@@ -1,5 +1,5 @@
-#include "wiring_private.h"
-#include "pins_arduino.h"
+// #include "wiring_private.h"
+// #include "pins_arduino.h"
 
 //Set BaudRate
 const uint16_t BAUD_RATE = 9600;
@@ -19,21 +19,21 @@ const uint16_t END_TIMER = 500;
 //Set pins
 const uint8_t DIGITAL_TRIGGER_PIN = 4;
 const uint8_t DIGITAL_PULSE_PIN = 2;
-const uint8_t ANALOG_READ_PIN = 0;
+uint8_t ANALOG_READ_PIN = 0;
 
 //virtual function declarations
 //void dumpToSerialPort();
 //void addToBuffer(uint16_t adcValue);
 
-uint8_t analog_reference = DEFAULT;
+// uint8_t analog_reference = DEFAULT;
 
-void analogReference(uint8_t mode)
-{
-	// can't actually set the register here because the default setting
-	// will connect AVCC and the AREF pin, which would cause a short if
-	// there's something connected to AREF.
-	analog_reference = mode;
-}
+// void analogReference(uint8_t mode)
+// {
+// 	// can't actually set the register here because the default setting
+// 	// will connect AVCC and the AREF pin, which would cause a short if
+// 	// there's something connected to AREF.
+// 	analog_reference = mode;
+// }
 
 void setup(){
 	//Setup Digital output pins
@@ -58,63 +58,62 @@ void loop(){
 	digitalWrite(DIGITAL_PULSE_PIN, HIGH);
 
 	//
-	// uint16_t adcValue = analogRead(ANALOG_READ_PIN);		//THIS instruction takes a long time
+	uint16_t adcValue = analogRead(ANALOG_READ_PIN);		//THIS instruction takes a long time
 
-	uint8_t low, high;
+	// uint8_t low, high;
 
-	#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-		if (pin >= 54) pin -= 54; // allow for channel or pin numbers
-	#elif defined(__AVR_ATmega32U4__)
-		if (pin >= 18) pin -= 18; // allow for channel or pin numbers
-	#elif defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || 
-	defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__)
-		if (pin >= 24) pin -= 24; // allow for channel or pin numbers
-	#elif defined(analogPinToChannel) && (defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__))
-		pin = analogPinToChannel(pin);
-	#else
-		if (pin >= 14) pin -= 14; // allow for channel or pin numbers
-	#endif
+	// #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+	// 	if (ANALOG_READ_PIN >= 54) ANALOG_READ_PIN -= 54; // allow for channel or pin numbers
+	// #elif defined(__AVR_ATmega32U4__)
+	// 	if (ANALOG_READ_PIN >= 18) ANALOG_READ_PIN -= 18; // allow for channel or pin numbers
+	// #elif defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__)
+	// 	if (ANALOG_READ_PIN >= 24) ANALOG_READ_PIN -= 24; // allow for channel or pin numbers
+	// #elif defined(analogPinToChannel) && (defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__))
+	// 	ANALOG_READ_PIN = analogPinToChannel(ANALOG_READ_PIN);
+	// #else
+	// 	if (ANALOG_READ_PIN >= 14) ANALOG_READ_PIN -= 14; // allow for channel or pin numbers
+	// #endif
 		
-	#if defined(__AVR_ATmega32U4__)
-		pin = analogPinToChannel(pin);
-		ADCSRB = (ADCSRB & ~(1 << MUX5)) | (((pin >> 3) & 0x01) << MUX5);
-	#elif defined(ADCSRB) && defined(MUX5)
-		// the MUX5 bit of ADCSRB selects whether we're reading from channels
-		// 0 to 7 (MUX5 low) or 8 to 15 (MUX5 high).
-		ADCSRB = (ADCSRB & ~(1 << MUX5)) | (((pin >> 3) & 0x01) << MUX5);
-	#endif
+	// #if defined(__AVR_ATmega32U4__)
+	// 	ANALOG_READ_PIN = analogPinToChannel(ANALOG_READ_PIN);
+	// 	ADCSRB = (ADCSRB & ~(1 << MUX5)) | (((ANALOG_READ_PIN >> 3) & 0x01) << MUX5);
+	// #elif defined(ADCSRB) && defined(MUX5)
+	// 	// the MUX5 bit of ADCSRB selects whether we're reading from channels
+	// 	// 0 to 7 (MUX5 low) or 8 to 15 (MUX5 high).
+	// 	ADCSRB = (ADCSRB & ~(1 << MUX5)) | (((ANALOG_READ_PIN >> 3) & 0x01) << MUX5);
+	// #endif
 	  
-		// set the analog reference (high two bits of ADMUX) and select the
-		// channel (low 4 bits).  this also sets ADLAR (left-adjust result)
-		// to 0 (the default).
-	#if defined(ADMUX)
-		ADMUX = (analog_reference << 6) | (ANALOG_READ_PIN & 0x07);
-	#endif
+	// 	// set the analog reference (high two bits of ADMUX) and select the
+	// 	// channel (low 4 bits).  this also sets ADLAR (left-adjust result)
+	// 	// to 0 (the default).
+	// #if defined(ADMUX)
+	// 	ADMUX = (analog_reference << 6) | (ANALOG_READ_PIN & 0x07);
+	// #endif
 	
-		// without a delay, we seem to read from the wrong channel
-		//delay(1);
+	// 	// without a delay, we seem to read from the wrong channel
+	// 	//delay(1);
 	
-	#if defined(ADCSRA) && defined(ADCL)
-		// start the conversion
-		sbi(ADCSRA, ADSC);
+	// #if defined(ADCSRA) && defined(ADCL)
+	// 	// start the conversion
+	// 	sbi(ADCSRA, ADSC);
 	
-		// ADSC is cleared when the conversion finishes
-		while (bit_is_set(ADCSRA, ADSC));
+	// 	// ADSC is cleared when the conversion finishes
+	// 	while (bit_is_set(ADCSRA, ADSC));
 	
-		// we have to read ADCL first; doing so locks both ADCL
-		// and ADCH until ADCH is read.  reading ADCL second would
-		// cause the results of each conversion to be discarded,
-		// as ADCL and ADCH would be locked when it completed.
-		low  = ADCL;
-		high = ADCH;
-	#else
-	// 	// we dont have an ADC, return 0
-		low  = 0;
-		high = 0;
-	#endif
+	// 	// we have to read ADCL first; doing so locks both ADCL
+	// 	// and ADCH until ADCH is read.  reading ADCL second would
+	// 	// cause the results of each conversion to be discarded,
+	// 	// as ADCL and ADCH would be locked when it completed.
+	// 	low  = ADCL;
+	// 	high = ADCH;
+	// #else
+	// // 	// we dont have an ADC, return 0
+	// 	low  = 0;
+	// 	high = 0;
+	// #endif
 	
-		// combine the two bytes
-	uint16_t adcValue = (high << 8) | low;
+	// 	// combine the two bytes
+	// uint16_t adcValue = (high << 8) | low;
 
 	if(timer > 0){
 		//if we are still filling buffer before dump
